@@ -1,124 +1,213 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
+"use client";
 
-const inter = Inter({ subsets: ['latin'] })
+import { useState } from "react";
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+	const [option, setOption] = useState("video");
+	const [downloadUrl, setDownloadUrl] = useState("");
+	const [progress, setProgress] = useState(0);
+	const [downloadError, setDownloadError] = useState(false);
+	const [downloadErrorMessage, setDownloadErrorMessage] = useState("");
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+	function calculateProgress(done: number, total: number) {
+		if (total === 0) {
+			return 0.0;
+		}
+		return done / total;
+	}
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://beta.nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+	async function downloadFile(task_id: string) {
+		var filename = "";
+		await fetch(`http://localhost:8000/task/${task_id}/file`)
+			.then((response) => {
+				if (response.status !== 200) {
+					return;
+				}
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+				const disposition = response.headers.get("Content-Disposition");
+				filename = disposition!.split(/;(.+)/)[1].split(/=(.+)/)[1];
+				if (filename.toLowerCase().startsWith("utf-8''"))
+					filename = decodeURIComponent(
+						filename.replace("utf-8''", "")
+					);
+				else filename = filename.replace(/['"]/g, "");
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
+				return response.blob();
+			})
+			.then((blob) => {
+				var url = window.URL.createObjectURL(blob!);
+				var a = document.createElement("a");
+				a.href = url;
+				a.download = filename;
+				document.body.appendChild(a);
+				a.click();
+				a.remove();
+			});
+	}
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+	async function onSubmit(e: any) {
+		// Prevent redirect
+		e.preventDefault();
+
+		// Reset error states
+		setDownloadError(false);
+		setDownloadErrorMessage("");
+
+		// Request download task on server
+		var exit = false;
+		var task_id = "0";
+		await fetch(`http://localhost:8000/download/${option}/`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			mode: "cors",
+			body: JSON.stringify({
+				url: downloadUrl,
+			}),
+		})
+			.then((res) => {
+				if (res.status == 422) {
+					setDownloadError(true);
+					setDownloadErrorMessage(
+						"The specified link is invalid. Please provide a valid url."
+					);
+					exit = true;
+				}
+
+				return res.json();
+			})
+			.then((json) => {
+				// Get task id
+				task_id = json.id;
+			});
+		if (exit) {
+			return;
+		}
+
+		// Begin polling (get download progress every x seconds)
+		const pollEveryMilliseconds = 200;
+		var intervalId = setInterval(() => {
+			fetch(`http://localhost:8000/task/${task_id}/status/`)
+				.then((res) => res.json())
+				.then((res) => {
+					// Update progress
+					setProgress(calculateProgress(res.done, res.total));
+
+					// Stop polling if task failed
+					if (res.status == "FAILURE") {
+						clearInterval(intervalId);
+						setDownloadError(true);
+						setDownloadErrorMessage(
+							"Video could not be downloaded. Please double check the provided link."
+						);
+					}
+
+					// Stop polling ended successfully
+					if (res.status === "SUCCESS") {
+						clearInterval(intervalId);
+						downloadFile(task_id);
+					}
+				});
+		}, pollEveryMilliseconds);
+	}
+
+	function handleOptionChange(e: any) {
+		setOption(e.target.value);
+	}
+
+	function handleDownloadUrlChange(e: any) {
+		setDownloadUrl(e.target.value);
+	}
+
+	function formatBytes(bytes: number, decimals = 2) {
+		if (!+bytes) return "0 Bytes";
+		const k = 1000;
+		const dm = decimals < 0 ? 0 : decimals;
+		const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+		const i = Math.floor(Math.log(bytes) / Math.log(k));
+		return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${
+			sizes[i]
+		}`;
+	}
+
+	return (
+		<div className="flex flex-col items-center justify-center w-screen h-screen">
+			<div className="container w-full max-w-2xl p-4">
+				<form className="form-control">
+					<div className="flex flex-col">
+						<div className="flex flex-col items-center sm:flex-row sm:input-group">
+							<input
+								type="search"
+								placeholder="https://www.youtube.com/watch?v=…"
+								className="w-full input input-bordered"
+								onChange={handleDownloadUrlChange}
+							/>
+							<select
+								name="option"
+								className="w-full mt-3 sm:w-auto sm:mt-0 select select-bordered"
+								onChange={(e) => handleOptionChange(e)}
+							>
+								<option value="video">Video</option>
+								<option value="audio">Audio</option>
+							</select>
+						</div>
+						<div className="flex items-center h-16 mt-5">
+							{downloadError && (
+								<div className="text-sm alert alert-error">
+									<div>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											className="flex-shrink-0 w-6 h-6 stroke-current"
+											fill="none"
+											viewBox="0 0 24 24"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth="2"
+												d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+											/>
+										</svg>
+										<span>{downloadErrorMessage}</span>
+									</div>
+								</div>
+							)}
+						</div>
+						<div className="flex items-center mt-3">
+							<progress
+								className={
+									"progress progress-accent " +
+									(downloadError && " progress-error")
+								}
+								value={downloadError ? 1 : progress}
+								max="1"
+							></progress>
+						</div>
+						<button
+							className="gap-2 mt-3 btn btn-primary"
+							onClick={onSubmit}
+							type="submit"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								strokeWidth={1.5}
+								stroke="currentColor"
+								className="w-6 h-6"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+								/>
+							</svg>
+							Download
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	);
 }
