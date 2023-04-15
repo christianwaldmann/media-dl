@@ -19,7 +19,7 @@ export default function Home() {
 
 	async function downloadFile(task_id: string) {
 		var filename = "";
-		await fetch(`${MEDIA_DL_API_URL}/task/${task_id}/file`)
+		await fetch(`${MEDIA_DL_API_URL}/task/${task_id}/file/`)
 			.then((response) => {
 				if (response.status !== 200) {
 					return;
