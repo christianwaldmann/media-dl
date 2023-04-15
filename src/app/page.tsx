@@ -8,6 +8,7 @@ export default function Home() {
 	const [progress, setProgress] = useState(0);
 	const [downloadError, setDownloadError] = useState(false);
 	const [downloadErrorMessage, setDownloadErrorMessage] = useState("");
+	const MEDIA_DL_API_URL = "/api";
 
 	function calculateProgress(done: number, total: number) {
 		if (total === 0) {
@@ -18,7 +19,7 @@ export default function Home() {
 
 	async function downloadFile(task_id: string) {
 		var filename = "";
-		await fetch(`http://localhost:8000/task/${task_id}/file`)
+		await fetch(`${MEDIA_DL_API_URL}/task/${task_id}/file`)
 			.then((response) => {
 				if (response.status !== 200) {
 					return;
@@ -56,7 +57,7 @@ export default function Home() {
 		// Request download task on server
 		var exit = false;
 		var task_id = "0";
-		await fetch(`http://localhost:8000/download/${option}/`, {
+		await fetch(`${MEDIA_DL_API_URL}/download/${option}/`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -88,7 +89,7 @@ export default function Home() {
 		// Begin polling (get download progress every x seconds)
 		const pollEveryMilliseconds = 200;
 		var intervalId = setInterval(() => {
-			fetch(`http://localhost:8000/task/${task_id}/status/`)
+			fetch(`${MEDIA_DL_API_URL}/task/${task_id}/status/`)
 				.then((res) => res.json())
 				.then((res) => {
 					// Update progress
