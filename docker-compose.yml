@@ -1,0 +1,43 @@
+services:
+    frontend:
+        build: .
+        ports:
+            - 3000:3000
+        restart: always
+        depends_on:
+            - api
+
+    api:
+        image: ghcr.io/christianwaldmann/media-dl-api:latest
+        ports:
+            - 8000:8000
+        command: uvicorn app.main:app --host 0.0.0.0
+        restart: always
+        volumes:
+            - temp-download-dir:/tmp
+        environment:
+            - CELERY_BROKER_URL=redis://redis:6379/0
+            - CELERY_RESULT_BACKEND=redis://redis:6379/0
+        depends_on:
+            - redis
+
+    worker:
+        image: ghcr.io/christianwaldmann/media-dl-api:latest
+        command: celery --app=app.worker.celery worker --loglevel=info
+        restart: always
+        volumes:
+            - temp-download-dir:/tmp
+        environment:
+            - CELERY_BROKER_URL=redis://redis:6379/0
+            - CELERY_RESULT_BACKEND=redis://redis:6379/0
+        depends_on:
+            - api
+            - redis
+
+    redis:
+        image: redis:6-alpine
+        restart: always
+
+volumes:
+    temp-download-dir:
+
